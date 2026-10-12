@@ -1,4 +1,5 @@
-const API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNmU5YTU1YmRiOGFjZjI3ZmI2YjFjYTc0YjFkYmRlOSIsIm5iZiI6MTc5MTIzMjI1MS4yMjMsInN1YiI6IjZhYzQwOGZiMzQ2OGEyMGZlNzJmMzZlMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.MdZhVs8pgCVfQqEwZcFRP7FHghp2P8rw-p3h-BFEvHM'; 
+/* Marconi Velasquez Israel Ronald */
+const API_KEY = 'b6e9a55bdb8acf27fb6b1ca74b1dbde9'; 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
@@ -68,3 +69,68 @@ cargarTema();
 // #                                                                          #
 // ############################################################################
 
+const obtenerSeries=async()=>{
+    const url = `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=es-ES`;
+    const respuesta=await fetch(url);
+    const datos=await respuesta.json();
+    return datos.results;
+}
+/* const obtenerSerieId=async(id)=>{
+    const url = `${BASE_URL}/tv/${id}?api_key=${API_KEY}&language=es-ES`;
+    const respuesta=await fetch(url);
+    const datos=await respuesta.json();
+    return datos.results;
+} */
+const crearTarjeta=(serie)=>{
+    const{name,first_air_date,vote_average,poster_path}=serie;
+    const año=first_air_date?first_air_date.split('-')[0]:'N/A';
+    const imagen=poster_path? `${IMAGE_URL}${poster_path}`:``;
+    const rating=vote_average?vote_average.toFixed(1):'N/A';
+    return `
+    <article class="serie-card">
+        <div class="serie-card__poster">
+            <img class="serie-card__image" src="${imagen}" alt="${name}"> 
+            <span class="serie-card__rating">${rating}</span>
+        </div> 
+        <div class="serie-card__content">
+            <h3 class="serie-card__title">${name}</h3>
+            <p class="serie-card__year">${año}</p>
+        </div> 
+    </article>
+    `;
+}
+/* 
+const obtenerDetalle=document.querySelector('.series_grid');
+
+if(obtenerDetalle){
+    obtenerDetalle.addEventListener('click',(serie)=>{
+        const {overview,number_of_seasons,number_of_episodes,genres,status}=serie
+        const resumen=overview?overview:'N/A';
+        const temporadas=number_of_seasons?number_of_seasons:`N/A`;
+        const episodios=number_of_episodes?number_of_episodes:'N/A';
+        const genero=genres?genres:'N/A';
+        const estado=status?status:`N/A`;
+        return alert(`${resumen} ${temporadas} ${episodios} ${genero} ${estado}`);
+    });
+}
+ */
+const iniciar =async()=>{
+    mostrarLoading();
+    try{
+        const series=await obtenerSeries();
+        ocultarLoading();
+        seriesGrid.innerHTML=series.map(crearTarjeta).join('');
+    }catch(error){
+        console.log('Error',error);
+        let mensaje='No se pudo cargar series';
+        if(error.message.includes('401')){
+            mensaje='API key invalida, verifica tu clave';
+        }else if(error.message.includes('fetch')){
+            mensaje='Error de red';
+        }
+        mostrarError();
+    }   
+}
+
+
+iniciar();
